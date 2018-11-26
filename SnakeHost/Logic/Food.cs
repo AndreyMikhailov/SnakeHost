@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace SnakeHost
+namespace SnakeHost.Logic
 {
     public class Food
     {

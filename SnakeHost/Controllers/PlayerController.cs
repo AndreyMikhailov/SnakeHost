@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SnakeHost.Logic;
+using SnakeHost.Messages;
 
 namespace SnakeHost.Controllers
 {
@@ -6,29 +8,37 @@ namespace SnakeHost.Controllers
     [ApiController]
     public class PlayerController : ControllerBase
     {
-        public PlayerController(Game game)
+        public PlayerController(Authenticator authenticator, Game game)
         {
+            _authenticator = authenticator;
             _game = game;
         }
-
-        [HttpPost]
-        public void Register(string name)
-        {
-            _game.RegisterPlayer(name);
-        }
-
+        
         [HttpGet]
-        public GameState GameBoard()
+        [ActionName("gameboard")]
+        public GameStateResponse GetGameBoard()
         {
             return _game.GetState();
         }
 
-        [HttpPut]
-        public void Direction(string player, Direction direction)
+        [HttpPost]
+        [ActionName("direction")]
+        public void SetDirection(DirectionRequest request)
         {
-            _game.SetPlayerDirection(player, direction);
+            var credentials = request.Credentials;
+            if (credentials == null || !credentials.IsValid())
+            {
+                return;
+            }
+
+            if (_game.TryFindPlayer(credentials.Name, out var player) &&
+                _authenticator.CheckPlayer(player, credentials))
+            {
+                _game.SetPlayerDirection(player, request.Direction);
+            }
         }
 
+        private readonly Authenticator _authenticator;
         private readonly Game _game;
     }
 }

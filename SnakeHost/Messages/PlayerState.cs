@@ -1,6 +1,7 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 
-namespace SnakeHost
+namespace SnakeHost.Messages
 {
     public class PlayerState
     {

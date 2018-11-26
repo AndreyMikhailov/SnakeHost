@@ -1,8 +1,8 @@
 ﻿using System.Drawing;
 
-namespace SnakeHost
+namespace SnakeHost.Messages
 {
-    public class GameState
+    public class GameStateResponse
     {
         public bool IsStarted { get; set; }
         public bool IsPaused { get; set; }

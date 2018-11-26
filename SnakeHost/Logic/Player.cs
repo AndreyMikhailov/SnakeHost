@@ -1,18 +1,20 @@
 ﻿using System;
 using JetBrains.Annotations;
+using SnakeHost.Helpers;
+using SnakeHost.Messages;
 
-namespace SnakeHost
+namespace SnakeHost.Logic
 {
     public class Player
     {
         public Player([NotNull] string name)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
+            Password = PasswordGenerator.Generate(20, 0);
         }
 
         public string Name { get; }
 
-        [CanBeNull]
-        public Snake Snake { get; set; }
+        public string Password { get; }
     }
 }

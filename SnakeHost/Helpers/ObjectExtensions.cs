@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
-namespace SnakeHost
+namespace SnakeHost.Helpers
 {
     public static class ObjectExtensions
     {

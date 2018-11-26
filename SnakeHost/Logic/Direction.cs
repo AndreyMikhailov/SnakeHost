@@ -1,4 +1,4 @@
-﻿namespace SnakeHost
+﻿namespace SnakeHost.Logic
 {
     public enum Direction
     {

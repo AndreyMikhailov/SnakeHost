@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
 using JetBrains.Annotations;
+using SnakeHost.Messages;
 
-namespace SnakeHost
+namespace SnakeHost.Logic
 {
     public class GameBoard
     {
-        public GameBoard(Size size)
+        public GameBoard(Size size, IEnumerable<Player> players)
         {
+            _playersData = new PlayerDataCollection(players);
             Size = size;
         }
 
@@ -17,21 +20,9 @@ namespace SnakeHost
 
         public int MaxFood { get; set; } = 20;
 
-        public IReadOnlyCollection<Player> Players => _players;
-
-        public IReadOnlyCollection<Food> Food => _foodList;
-
-        public void AddPlayer(string name)
+        public void SetPlayerDirection(Player player, Direction direction)
         {
-            if (FindPlayer(name) == null)
-            {
-                _players.Add(new Player(name));
-            }
-        }
-
-        public void SetPlayerDirection(string name, Direction direction)
-        {
-            FindPlayer(name)?.Snake?.SetDirection(direction);
+            FindSnake(player)?.SetDirection(direction);
         }
 
         public void NextTurn()
@@ -46,24 +37,25 @@ namespace SnakeHost
             GenerateFood();
         }
         
-        public GameState GetState()
+        public GameStateResponse GetState()
         {
-            return new GameState
+            return new GameStateResponse
             {
                 GameBoardSize = Size,
                 MaxFood = MaxFood,
-                Food = Food.Select(f => f.Position).ToArray(),
-                Players = Players.Select(p => new PlayerState
-                {
-                    Name = p.Name,
-                    Snake = p.Snake?.Body.ToArray()
-                }).ToArray()
+                Food = _foodList.Select(f => f.Position).ToArray(),
+                Players = _playersData.Select(playerData => 
+                    new PlayerState
+                    {
+                        Name = playerData.Player.Name,
+                        Snake = playerData.Snake?.Body.ToArray()
+                    }).ToArray()
             };
         }
 
         private void MoveAll()
         {
-            foreach (var snake in _snakes)
+            foreach (var snake in GetAllSnakes())
             {
                 snake.Move(_foodList);
             }
@@ -71,9 +63,9 @@ namespace SnakeHost
 
         private void KillCrashedByHeads()
         {
-            foreach (var snake in _snakes)
+            foreach (var snake in GetAllSnakes())
             {
-                if (snake.IsCrashedIntoOthersHead(_snakes))
+                if (snake.IsCrashedIntoOthersHead(GetAllSnakes()))
                 {
                     snake.Kill();
                 }
@@ -82,9 +74,9 @@ namespace SnakeHost
 
         private void KillCrashed()
         {
-            foreach (var snake in _snakes)
+            foreach (var snake in GetAllSnakes())
             {
-                if (!snake.IsInside(Size) || snake.IsCrashedIntoItself() || snake.IsCrashedIntoOthers(_snakes))
+                if (!snake.IsInside(Size) || snake.IsCrashedIntoItself() || snake.IsCrashedIntoOthers(GetAllSnakes()))
                 {
                     snake.Kill();
                 }
@@ -93,7 +85,14 @@ namespace SnakeHost
 
         private void RemoveDead()
         {
-            _snakes.RemoveAll(snake => !snake.IsAlive);
+            foreach (var playerData in _playersData)
+            {
+                var snake = playerData.Snake;
+                if (snake != null && !snake.IsAlive)
+                {
+                    playerData.Snake = null;
+                }
+            }
         }
 
         private void RemoveEatenFood()
@@ -103,12 +102,14 @@ namespace SnakeHost
 
         private void RespawnDead()
         {
-            var deadPlayers = _players.Where(p => p.Snake?.IsAlive != true);
+            var deadPlayers = _playersData.Where(playerData => playerData.Snake?.IsAlive != true);
 
-            foreach (var player in deadPlayers)
+            foreach (var playerData in deadPlayers)
             {
-                TrySpawnSnake(out var snake);
-                player.Snake = snake;
+                if (TryGenerateSnakeOnFreeSpace(out var snake))
+                {
+                    playerData.Snake = snake;
+                }
             }
         }
 
@@ -125,18 +126,10 @@ namespace SnakeHost
             }
         }
 
-        private void TrySpawnSnake(out Snake snake)
-        {
-            if (TryGenerateSnakeOnFreeSpace(out snake))
-            {
-                _snakes.Add(snake);
-            }
-        }
-
         private bool IsPointOnFreeSpace(Point point)
         {
             return IsPointOnBoard(point) && 
-                   _snakes.All(s => !s.Intersects(point)) && 
+                   GetAllSnakes().All(s => !s.Intersects(point)) && 
                    _foodList.All(f => f.Position != point);
         }
         
@@ -194,16 +187,49 @@ namespace SnakeHost
         }
 
         [CanBeNull]
-        private Player FindPlayer(string name)
+        private Snake FindSnake(Player player)
         {
-            return _players.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            return _playersData.TryGetValue(player, out var data) ? data.Snake : null;
         }
 
-        private readonly List<Snake> _snakes = new List<Snake>();
-        private readonly List<Player> _players = new List<Player>();
+        [ItemNotNull]
+        private IEnumerable<Snake> GetAllSnakes()
+        {
+            return _playersData
+                .Select(playerData => playerData.Snake)
+                .Where(snake => snake != null);
+        }
+
+        private readonly PlayerDataCollection _playersData;
         private readonly List<Food> _foodList = new List<Food>();
         private readonly Random _random = new Random();
 
-        private const int GeneratorMaxTries = 100;
+        private const int GeneratorMaxTries = 200;
+
+        private class PlayerData
+        {
+            public PlayerData(Player player)
+            {
+                Player = player;
+            }
+
+            public Player Player { get; }
+
+            [CanBeNull]
+            public Snake Snake { get; set; }
+        }
+
+        private class PlayerDataCollection : KeyedCollection<Player, PlayerData>
+        {
+            public PlayerDataCollection(IEnumerable<Player> players)
+            {
+                foreach (var player in players)
+                {
+                    Add(new PlayerData(player));
+                }
+            }
+
+            protected override Player GetKeyForItem(PlayerData item) => item.Player;
+        }
     }
 }
