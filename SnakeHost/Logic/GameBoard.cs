@@ -15,10 +15,18 @@ namespace SnakeHost.Logic
             _playersData = new PlayerDataCollection(players);
             Size = size;
         }
-
+        
         public Size Size { get; }
 
         public int MaxFood { get; set; } = 20;
+
+        public int MaxWalls { get; set; } = 20;
+
+        public Size MaxWallSize { get; set; } = new Size(10, 10);
+
+        public Size MinWallSize { get; set; } = new Size(3, 3);
+
+        public int TurnNumber { get; private set; }
 
         public void SetPlayerDirection(Player player, Direction direction)
         {
@@ -27,23 +35,36 @@ namespace SnakeHost.Logic
 
         public void NextTurn()
         {
-            MoveAll();
-            KillCrashedByHeads();
-            RemoveDead();
-            KillCrashed();
-            RemoveDead();
-            RemoveEatenFood();
-            RespawnDead();
-            GenerateFood();
+            if (TurnNumber == 0)
+            {
+                GenerateWalls();
+                GenerateFood();
+                RespawnDead();
+            }
+            else
+            {
+                MoveAll();
+                KillCrashedByHeads();
+                RemoveDead();
+                KillCrashed();
+                RemoveDead();
+                RemoveEatenFood();
+                RespawnDead();
+                GenerateFood();
+            }
+
+            TurnNumber++;
         }
         
         public GameStateResponse GetState()
         {
             return new GameStateResponse
             {
+                TurnNumber = TurnNumber,
                 GameBoardSize = Size,
                 MaxFood = MaxFood,
                 Food = _foodList.Select(f => f.Position).ToArray(),
+                Walls = _walls.ToArray(),
                 Players = _playersData.Select(playerData => 
                     new PlayerState
                     {
@@ -76,7 +97,10 @@ namespace SnakeHost.Logic
         {
             foreach (var snake in GetAllSnakes())
             {
-                if (!snake.IsInside(Size) || snake.IsCrashedIntoItself() || snake.IsCrashedIntoOthers(GetAllSnakes()))
+                if (!snake.IsInside(Size) || 
+                    snake.IsCrashedIntoItself() ||
+                    snake.IsCrashedIntoOthers(GetAllSnakes()) || 
+                    snake.IsCrashedIntoWall(_walls))
                 {
                     snake.Kill();
                 }
@@ -113,6 +137,17 @@ namespace SnakeHost.Logic
             }
         }
 
+        private void GenerateWalls()
+        {
+            for (var i = 0; i < MaxWalls; i++)
+            {
+                if (TryGenerateWallOnBoard(out var wall))
+                {
+                    _walls.Add(wall);
+                }
+            }
+        }
+
         private void GenerateFood()
         {
             var newFoodCount = MaxFood - _foodList.Count;
@@ -130,6 +165,7 @@ namespace SnakeHost.Logic
         {
             return IsPointOnBoard(point) && 
                    GetAllSnakes().All(s => !s.Intersects(point)) && 
+                   _walls.All(w => !w.Intersects(point)) &&
                    _foodList.All(f => f.Position != point);
         }
         
@@ -186,6 +222,25 @@ namespace SnakeHost.Logic
             return new Point(x, y);
         }
 
+        private bool TryGenerateWallOnBoard(out Wall wall)
+        {
+            for (var i = 0; i < GeneratorMaxTries; i++)
+            {
+                var point = GeneratePointOnBoard();
+                var width = _random.Next(MinWallSize.Width, MaxWallSize.Width + 1);
+                var height = _random.Next(MinWallSize.Height, MaxWallSize.Height + 1);
+                var rectangle = new Rectangle(point.X, point.Y, width, height);
+
+                if (rectangle.Right <= Size.Width && rectangle.Bottom <= Size.Height)
+                {
+                    wall = new Wall(rectangle);
+                    return true;
+                }
+            }
+            wall = null;
+            return false;
+        }
+
         [CanBeNull]
         private Snake FindSnake(Player player)
         {
@@ -202,6 +257,7 @@ namespace SnakeHost.Logic
 
         private readonly PlayerDataCollection _playersData;
         private readonly List<Food> _foodList = new List<Food>();
+        private readonly List<Wall> _walls = new List<Wall>();
         private readonly Random _random = new Random();
 
         private const int GeneratorMaxTries = 200;

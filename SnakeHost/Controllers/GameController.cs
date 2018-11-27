@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc;
 using SnakeHost.Logic;
@@ -42,6 +43,13 @@ namespace SnakeHost.Controllers
             }
         }
 
+        [HttpGet]
+        [ActionName("player")]
+        public Player[] GetPlayers(AuthenticationRequest request)
+        {
+            return IsAdmin(request) ? _game.Players.ToArray() : null;
+        }
+
         [HttpPost]
         [ActionName("start")]
         public void Start(AuthenticationRequest request)
@@ -81,35 +89,48 @@ namespace SnakeHost.Controllers
                 _game.Resume();
             }
         }
-
+        
         [HttpPost]
-        [ActionName("gameboardsize")]
-        public void SetGameBoardSize(GameBoardSizeRequest request)
+        [ActionName("gamesettings")]
+        public void SetGameSettings(GameSettingsRequest request)
         {
-            if (IsAdmin(request))
+            var settings = request.Settings;
+
+            if (!IsAdmin(request) || settings == null)
             {
-                _game.GameBoardSize = request.Size;
+                return;
             }
+
+            _game.GameBoardSize = settings.GameBoardSize;
+            _game.AutoRestart = settings.AutoRestart;
+            _game.MaxWallSize = settings.MaxWallSize;
+            _game.MinWallSize = settings.MinWallSize;
+            _game.MaxWalls = settings.MaxWalls;
+            _game.MaxFood = settings.MaxFood;
+            _game.RoundTime = TimeSpan.FromSeconds(settings.RoundTimeSeconds);
+            _game.TurnTime = TimeSpan.FromSeconds(settings.TurnTimeSeconds);
         }
 
-        [HttpPost]
-        [ActionName("maxfood")]
-        public void SetMaxFood(MaxFoodRequest request)
+        [HttpGet]
+        [ActionName("gamesettings")]
+        public GameSettingsState GetGameSettings(AuthenticationRequest request)
         {
-            if (IsAdmin(request))
+            if (!IsAdmin(request))
             {
-                _game.MaxFood = request.MaxFood;
+                return null;
             }
-        }
 
-        [HttpPost]
-        [ActionName("autorestart")]
-        public void SetAutoRestart(AutoRestartRequest request)
-        {
-            if (IsAdmin(request))
+            return new GameSettingsState
             {
-                _game.AutoRestart = request.AutoRestart;
-            }
+                GameBoardSize = _game.GameBoardSize,
+                AutoRestart = _game.AutoRestart,
+                MaxWallSize = _game.MaxWallSize,
+                MinWallSize = _game.MinWallSize,
+                MaxWalls = _game.MaxWalls,
+                MaxFood = _game.MaxFood,
+                RoundTimeSeconds = (int)_game.RoundTime.TotalSeconds,
+                TurnTimeSeconds = (int)_game.TurnTime.TotalSeconds,
+            };
         }
 
         private bool IsAdmin([NotNull] AuthenticationRequest request)

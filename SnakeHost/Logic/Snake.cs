@@ -61,6 +61,11 @@ namespace SnakeHost.Logic
                 .Any(other => other.Head == Head);
         }
 
+        public bool IsCrashedIntoWall(IEnumerable<Wall> walls)
+        {
+            return walls.Any(wall => wall.Intersects(Head));
+        }
+
         public bool IsCrashedIntoItself()
         {
             return _body.Count > _body.Distinct().Count();

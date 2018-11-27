@@ -1,7 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
 using SnakeHost.Helpers;
-using SnakeHost.Messages;
 
 namespace SnakeHost.Logic
 {

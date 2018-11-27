@@ -21,16 +21,31 @@ namespace SnakeHost.Logic
 
         public int MaxFood { get; set; } = 50;
 
+        public Size MaxWallSize { get; set; } = new Size(10, 10);
+
+        public Size MinWallSize { get; set; } = new Size(3, 3);
+
+        public int MaxWalls { get; set; } = 20;
+
         public bool IsStarted { get; private set; }
 
         public bool IsPaused { get; private set; }
+
+        public IEnumerable<Player> Players => _players;
 
         public void Start()
         {
             lock (_syncObject)
             {
                 IsStarted = true;
-                _gameBoard = new GameBoard(GameBoardSize, _players) { MaxFood = MaxFood };
+
+                _gameBoard = new GameBoard(GameBoardSize, _players)
+                {
+                    MaxFood = MaxFood,
+                    MaxWalls = MaxWalls,
+                    MaxWallSize = MaxWallSize,
+                    MinWallSize = MinWallSize
+                };
                 _gameLoopTask = Task.Run(GameLoop);
             }
         }
