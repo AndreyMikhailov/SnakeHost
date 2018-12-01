@@ -2,6 +2,6 @@
 {
     public class AuthenticationRequest
     {
-        public Credentials Credentials { get; set; }
+        public string Token { get; set; }
     }
 }

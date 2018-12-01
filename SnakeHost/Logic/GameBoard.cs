@@ -18,6 +18,8 @@ namespace SnakeHost.Logic
         
         public Size Size { get; }
 
+        public CrashRule CrashRule { get; set; }
+
         public int MaxFood { get; set; } = 20;
 
         public int MaxWalls { get; set; } = 20;
@@ -26,11 +28,19 @@ namespace SnakeHost.Logic
 
         public Size MinWallSize { get; set; } = new Size(3, 3);
 
+        public int SpawnProtectionTurns { get; set; } = 4;
+
         public int TurnNumber { get; private set; }
 
         public void SetPlayerDirection(Player player, Direction direction)
         {
-            FindSnake(player)?.SetDirection(direction);
+            if (!_playersData.TryGetValue(player, out var playerData))
+            {
+                return;
+            }
+
+            playerData.IsAfk = false;
+            playerData.Snake?.SetDirection(direction);
         }
 
         public void NextTurn()
@@ -64,11 +74,12 @@ namespace SnakeHost.Logic
                 GameBoardSize = Size,
                 MaxFood = MaxFood,
                 Food = _foodList.Select(f => f.Position).ToArray(),
-                Walls = _walls.ToArray(),
+                Walls = _walls.Select(w => w.Rectangle).ToArray(),
                 Players = _playersData.Select(playerData => 
                     new PlayerState
                     {
                         Name = playerData.Player.Name,
+                        IsSpawnProtected = IsSpawnProtected(playerData),
                         Snake = playerData.Snake?.Body.ToArray()
                     }).ToArray()
             };
@@ -76,7 +87,7 @@ namespace SnakeHost.Logic
 
         private void MoveAll()
         {
-            foreach (var snake in GetAllSnakes())
+            foreach (var snake in GetNotProtectedSnakes())
             {
                 snake.Move(_foodList);
             }
@@ -84,26 +95,44 @@ namespace SnakeHost.Logic
 
         private void KillCrashedByHeads()
         {
-            foreach (var snake in GetAllSnakes())
+            if (CrashRule == CrashRule.CrashedIntoSideDies)
             {
-                if (snake.IsCrashedIntoOthersHead(GetAllSnakes()))
+                foreach (var snake in GetNotProtectedSnakes())
                 {
-                    snake.Kill();
+                    if (snake.IsCrashedIntoOthersHead(GetNotProtectedSnakes()))
+                    {
+                        snake.Kill();
+                    }
                 }
             }
         }
 
         private void KillCrashed()
         {
-            foreach (var snake in GetAllSnakes())
+            foreach (var snake in GetNotProtectedSnakes())
             {
                 if (!snake.IsInside(Size) || 
                     snake.IsCrashedIntoItself() ||
-                    snake.IsCrashedIntoOthers(GetAllSnakes()) || 
+                    IsCrashedByRule(snake, GetNotProtectedSnakes()) || 
+                    snake.IsCrashedIntoOther(GetProtectedSnakes()) ||
                     snake.IsCrashedIntoWall(_walls))
                 {
                     snake.Kill();
                 }
+            }
+        }
+
+        private bool IsCrashedByRule(Snake snake, IEnumerable<Snake> others)
+        {
+            switch (CrashRule)
+            {
+                case CrashRule.ShortestDies:
+                    var othersArray = others.ToArray();
+                    return snake.IsCrashedIntoLongerOrEqual(othersArray) || snake.IsCrashedByLonger(othersArray);
+                case CrashRule.CrashedIntoSideDies:
+                    return snake.IsCrashedIntoOther(others);
+                default:
+                    return true;
             }
         }
 
@@ -115,6 +144,7 @@ namespace SnakeHost.Logic
                 if (snake != null && !snake.IsAlive)
                 {
                     playerData.Snake = null;
+                    playerData.DeathTurnNumber = TurnNumber;
                 }
             }
         }
@@ -126,11 +156,11 @@ namespace SnakeHost.Logic
 
         private void RespawnDead()
         {
-            var deadPlayers = _playersData.Where(playerData => playerData.Snake?.IsAlive != true);
+            var deadPlayers = _playersData.Where(IsDead);
 
             foreach (var playerData in deadPlayers)
             {
-                if (TryGenerateSnakeOnFreeSpace(out var snake))
+                if (!playerData.IsAfk && TryGenerateSnakeOnFreeSpace(out var snake))
                 {
                     playerData.Snake = snake;
                 }
@@ -241,18 +271,43 @@ namespace SnakeHost.Logic
             return false;
         }
 
-        [CanBeNull]
-        private Snake FindSnake(Player player)
-        {
-            return _playersData.TryGetValue(player, out var data) ? data.Snake : null;
-        }
-
         [ItemNotNull]
         private IEnumerable<Snake> GetAllSnakes()
         {
             return _playersData
                 .Select(playerData => playerData.Snake)
                 .Where(snake => snake != null);
+        }
+
+        [ItemNotNull]
+        private IEnumerable<Snake> GetNotProtectedSnakes()
+        {
+            return _playersData
+                .Where(playerData => !IsSpawnProtected(playerData))
+                .Select(playerData => playerData.Snake)
+                .Where(snake => snake != null);
+        }
+
+        [ItemNotNull]
+        private IEnumerable<Snake> GetProtectedSnakes()
+        {
+            return _playersData
+                .Where(IsSpawnProtected)
+                .Select(playerData => playerData.Snake)
+                .Where(snake => snake != null);
+        }
+
+        private bool IsSpawnProtected(PlayerData playerData)
+        {
+            return !IsDead(playerData) && 
+                   !playerData.IsAfk &&
+                   playerData.DeathTurnNumber.HasValue && 
+                   TurnNumber - playerData.DeathTurnNumber < SpawnProtectionTurns;
+        }
+
+        private static bool IsDead(PlayerData playerData)
+        {
+            return playerData.Snake?.IsAlive != true;
         }
 
         private readonly PlayerDataCollection _playersData;
@@ -273,6 +328,10 @@ namespace SnakeHost.Logic
 
             [CanBeNull]
             public Snake Snake { get; set; }
+
+            public bool IsAfk { get; set; } = true;
+
+            public int? DeathTurnNumber { get; set; }
         }
 
         private class PlayerDataCollection : KeyedCollection<Player, PlayerData>

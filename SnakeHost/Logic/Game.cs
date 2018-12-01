@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using SnakeHost.Messages;
+using SnakeHost.Storage;
 
 namespace SnakeHost.Logic
 {
@@ -15,7 +16,11 @@ namespace SnakeHost.Logic
 
         public TimeSpan RoundTime { get; set; } = TimeSpan.FromMinutes(5);
 
+        public TimeSpan SpawnProtectionTime { get; set; } = TimeSpan.FromSeconds(4);
+
         public Size GameBoardSize { get; set; } = new Size(100, 100);
+
+        public CrashRule CrashRule { get; set; }
 
         public bool AutoRestart { get; set; } = true;
 
@@ -33,14 +38,22 @@ namespace SnakeHost.Logic
 
         public IEnumerable<Player> Players => _players;
 
+        public Game()
+        {
+            _players = LoadPlayers();
+        }
+
         public void Start()
         {
             lock (_syncObject)
             {
                 IsStarted = true;
+                _roundNumber++;
 
                 _gameBoard = new GameBoard(GameBoardSize, _players)
                 {
+                    SpawnProtectionTurns = (int)(SpawnProtectionTime.Ticks / TurnTime.Ticks),
+                    CrashRule = CrashRule,
                     MaxFood = MaxFood,
                     MaxWalls = MaxWalls,
                     MaxWallSize = MaxWallSize,
@@ -83,7 +96,13 @@ namespace SnakeHost.Logic
                 }
 
                 var player = new Player(name);
+
+                if (HasPlayerToken(player.Token))
+                {
+                    throw new ApplicationException("Failed to generate unique token.");
+                }
                 _players.Add(player);
+                SavePlayers();
                 return player;
             }
         }
@@ -93,14 +112,24 @@ namespace SnakeHost.Logic
             lock (_syncObject)
             {
                 _players.RemoveAll(player => string.Equals(player.Name, name, StringComparison.OrdinalIgnoreCase));
+                SavePlayers();
             }
         }
 
-        public bool TryFindPlayer(string name, out Player player)
+        public bool TryFindPlayerByName(string name, out Player player)
         {
             lock (_syncObject)
             {
                 player = _players.FirstOrDefault(p => string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase));
+                return player != null;
+            }
+        }
+
+        public bool TryFindPlayerByToken(string token, out Player player)
+        {
+            lock (_syncObject)
+            {
+                player = _players.FirstOrDefault(p => p.Token == token);
                 return player != null;
             }
         }
@@ -123,23 +152,26 @@ namespace SnakeHost.Logic
                 var state = _gameBoard?.GetState() ?? new GameStateResponse();
                 state.IsStarted = IsStarted;
                 state.IsPaused = IsPaused;
+                state.RoundNumber = _roundNumber;
                 return state;
             }
         }
 
         private async Task GameLoop()
         {
+            var roundTime = RoundTime;
+            var turnTime = TurnTime;
             var elapsedTime = TimeSpan.Zero;
 
             while (IsStarted)
             {
                 if (IsPaused)
                 {
-                    await Task.Delay(TurnTime);
+                    await Task.Delay(turnTime);
                     continue;
                 }
 
-                if (elapsedTime >= RoundTime)
+                if (elapsedTime >= roundTime)
                 {
                     InternalStop(waitGameLoop: false);
 
@@ -161,8 +193,8 @@ namespace SnakeHost.Logic
                         Debug.WriteLine(ex);
                     }
                 }
-                await Task.Delay(TurnTime);
-                elapsedTime += TurnTime;
+                await Task.Delay(turnTime);
+                elapsedTime += turnTime;
             }
         }
 
@@ -174,24 +206,35 @@ namespace SnakeHost.Logic
             {
                 _gameLoopTask.Wait();
             }
-            WriteScores();
-        }
-
-        private void WriteScores()
-        {
-            // TODO
         }
 
         private bool HasPlayerName(string name)
         {
-            return TryFindPlayer(name, out _);
+            return TryFindPlayerByName(name, out _);
+        }
+
+        private bool HasPlayerToken(string token)
+        {
+            return TryFindPlayerByToken(token, out _);
+        }
+
+        private void SavePlayers()
+        {
+            _playersStorage.Write(_players);
+        }
+
+        private List<Player> LoadPlayers()
+        {
+            return _playersStorage.Read();
         }
 
         private GameBoard _gameBoard;
         private Task _gameLoopTask;
+        private int _roundNumber;
 
         private readonly object _syncObject = new object();
-        private readonly List<Player> _players = new List<Player>();
+        private readonly List<Player> _players;
+        private readonly JsonStorage<List<Player>> _playersStorage = new JsonStorage<List<Player>>("players.json");
 
         private const int MaxNameLength = 50;
     }

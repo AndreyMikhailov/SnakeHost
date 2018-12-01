@@ -1,5 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
+using Newtonsoft.Json;
 using SnakeHost.Helpers;
 
 namespace SnakeHost.Logic
@@ -7,13 +8,19 @@ namespace SnakeHost.Logic
     public class Player
     {
         public Player([NotNull] string name)
+            : this(name, PasswordGenerator.Generate(20, 0))
+        {
+        }
+
+        [JsonConstructor]
+        public Player([NotNull] string name, [NotNull] string token)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
-            Password = PasswordGenerator.Generate(20, 0);
+            Token = token;
         }
 
         public string Name { get; }
 
-        public string Password { get; }
+        public string Token { get; }
     }
 }

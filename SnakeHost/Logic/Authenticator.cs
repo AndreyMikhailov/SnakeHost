@@ -1,6 +1,5 @@
 ﻿using System;
 using JetBrains.Annotations;
-using SnakeHost.Messages;
 
 namespace SnakeHost.Logic
 {
@@ -11,22 +10,15 @@ namespace SnakeHost.Logic
             _settings = settings;
         }
 
-        public bool CheckPlayer([NotNull] Player player, [NotNull] Credentials credentials)
+        public bool AuthorizePlayer([NotNull] Player player, string token)
         {
             if (player == null) throw new ArgumentNullException(nameof(player));
-            if (credentials == null) throw new ArgumentNullException(nameof(credentials));
-
-            
-            return string.Equals(player.Name, credentials.Name, StringComparison.OrdinalIgnoreCase) &&
-                   player.Password == credentials.Password;
+            return player.Token == token;
         }
 
-        public bool CheckAdmin([NotNull] Credentials credentials)
+        public bool AuthorizeAdmin(string token)
         {
-            if (credentials == null) throw new ArgumentNullException(nameof(credentials));
-            
-            return string.Equals(_settings.AdminName, credentials.Name, StringComparison.OrdinalIgnoreCase) &&
-                   _settings.AdminPassword == credentials.Password;
+            return _settings.AdminToken == token;
         }
 
         private readonly Settings _settings;

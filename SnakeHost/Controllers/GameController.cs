@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using JetBrains.Annotations;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SnakeHost.Logic;
 using SnakeHost.Messages;
@@ -21,7 +21,7 @@ namespace SnakeHost.Controllers
         [ActionName("player")]
         public RegisterPlayerReply RegisterPlayer(RegisterPlayerRequest request)
         {
-            if (!IsAdmin(request))
+            if (!AuthorizeAdmin(request))
             {
                 return null;
             }
@@ -29,7 +29,7 @@ namespace SnakeHost.Controllers
             var player = _game.RegisterPlayer(request.PlayerName);
             return new RegisterPlayerReply
             {
-                Password = player.Password
+                Token = player.Token
             };
         }
         
@@ -37,7 +37,7 @@ namespace SnakeHost.Controllers
         [ActionName("player")]
         public void DeletePlayer(DeletePlayerRequest request)
         {
-            if (IsAdmin(request))
+            if (AuthorizeAdmin(request))
             {
                 _game.DeletePlayer(request.PlayerName);
             }
@@ -47,14 +47,14 @@ namespace SnakeHost.Controllers
         [ActionName("player")]
         public Player[] GetPlayers(AuthenticationRequest request)
         {
-            return IsAdmin(request) ? _game.Players.ToArray() : null;
+            return AuthorizeAdmin(request) ? _game.Players.ToArray() : null;
         }
 
         [HttpPost]
         [ActionName("start")]
         public void Start(AuthenticationRequest request)
         {
-            if (IsAdmin(request))
+            if (AuthorizeAdmin(request))
             {
                 _game.Start();
             }
@@ -64,7 +64,7 @@ namespace SnakeHost.Controllers
         [ActionName("stop")]
         public void Stop(AuthenticationRequest request)
         {
-            if (IsAdmin(request))
+            if (AuthorizeAdmin(request))
             {
                 _game.Stop();
             }
@@ -74,7 +74,7 @@ namespace SnakeHost.Controllers
         [ActionName("pause")]
         public void Pause(AuthenticationRequest request)
         {
-            if (IsAdmin(request))
+            if (AuthorizeAdmin(request))
             {
                 _game.Pause();
             }
@@ -84,7 +84,7 @@ namespace SnakeHost.Controllers
         [ActionName("resume")]
         public void Resume(AuthenticationRequest request)
         {
-            if (IsAdmin(request))
+            if (AuthorizeAdmin(request))
             {
                 _game.Resume();
             }
@@ -96,12 +96,13 @@ namespace SnakeHost.Controllers
         {
             var settings = request.Settings;
 
-            if (!IsAdmin(request) || settings == null)
+            if (!AuthorizeAdmin(request) || settings == null)
             {
                 return;
             }
 
             _game.GameBoardSize = settings.GameBoardSize;
+            _game.CrashRule = settings.CrashRule;
             _game.AutoRestart = settings.AutoRestart;
             _game.MaxWallSize = settings.MaxWallSize;
             _game.MinWallSize = settings.MinWallSize;
@@ -115,7 +116,7 @@ namespace SnakeHost.Controllers
         [ActionName("gamesettings")]
         public GameSettingsState GetGameSettings(AuthenticationRequest request)
         {
-            if (!IsAdmin(request))
+            if (!AuthorizeAdmin(request))
             {
                 return null;
             }
@@ -123,6 +124,7 @@ namespace SnakeHost.Controllers
             return new GameSettingsState
             {
                 GameBoardSize = _game.GameBoardSize,
+                CrashRule = _game.CrashRule,
                 AutoRestart = _game.AutoRestart,
                 MaxWallSize = _game.MaxWallSize,
                 MinWallSize = _game.MinWallSize,
@@ -133,12 +135,14 @@ namespace SnakeHost.Controllers
             };
         }
 
-        private bool IsAdmin([NotNull] AuthenticationRequest request)
+        private bool AuthorizeAdmin(AuthenticationRequest request)
         {
-            if (request == null) throw new ArgumentNullException(nameof(request));
-
-            return request.Credentials?.IsValid() == true &&
-                   _authenticator.CheckAdmin(request.Credentials);
+            if (_authenticator.AuthorizeAdmin(request.Token))
+            {
+                return true;
+            }
+            Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return false;
         }
 
         private readonly Authenticator _authenticator;

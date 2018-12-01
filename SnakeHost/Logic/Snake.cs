@@ -16,6 +16,7 @@ namespace SnakeHost.Logic
 
         public Point Head => _body.First.Value;
 
+        /// <summary>All body points starting from head.</summary>
         public IReadOnlyCollection<Point> Body => _body;
 
         public void SetDirection(Direction direction)
@@ -27,7 +28,7 @@ namespace SnakeHost.Logic
 
             if (!IsOppositeDirection(direction))
             {
-                _direction = direction;
+                _nextDirection = direction;
             }
         }
 
@@ -45,9 +46,11 @@ namespace SnakeHost.Logic
             {
                 _body.RemoveLast();
             }
+
+            _previousDirection = _nextDirection;
         }
 
-        public bool IsCrashedIntoOthers(IEnumerable<Snake> others)
+        public bool IsCrashedIntoOther(IEnumerable<Snake> others)
         {
             return others
                 .Where(other => other != this)
@@ -61,6 +64,22 @@ namespace SnakeHost.Logic
                 .Any(other => other.Head == Head);
         }
 
+        public bool IsCrashedIntoLongerOrEqual(IEnumerable<Snake> others)
+        {
+            return others
+                .Where(other => other != this)
+                .Where(other => other.Body.Count >= Body.Count)
+                .Any(other => other.Intersects(Head));
+        }
+
+        public bool IsCrashedByLonger(IEnumerable<Snake> others)
+        {
+            return others
+                .Where(other => other != this)
+                .Where(other => other.Body.Count > Body.Count)
+                .Any(other => Intersects(other.Head));
+        }
+
         public bool IsCrashedIntoWall(IEnumerable<Wall> walls)
         {
             return walls.Any(wall => wall.Intersects(Head));
@@ -69,6 +88,12 @@ namespace SnakeHost.Logic
         public bool IsCrashedIntoItself()
         {
             return _body.Count > _body.Distinct().Count();
+        }
+
+        public bool IntersectsOther(IEnumerable<Snake> others)
+        {
+            var othersPoints = others.SelectMany(s => s.Body).Distinct();
+            return Body.Except(othersPoints).Count() < Body.Count;
         }
 
         public void Kill()
@@ -88,7 +113,7 @@ namespace SnakeHost.Logic
 
         private Point GetNextHeadPosition()
         {
-            switch (_direction)
+            switch (_nextDirection)
             {
                 case Direction.Left:
                     return new Point(Head.X - 1, Head.Y);
@@ -105,10 +130,10 @@ namespace SnakeHost.Logic
 
         private bool IsOppositeDirection(Direction direction)
         {
-            return (direction == Direction.Bottom && _direction == Direction.Top) ||
-                   (direction == Direction.Top && _direction == Direction.Bottom) ||
-                   (direction == Direction.Left && _direction == Direction.Right) ||
-                   (direction == Direction.Right && _direction == Direction.Left);
+            return (direction == Direction.Bottom && _previousDirection == Direction.Top) ||
+                   (direction == Direction.Top && _previousDirection == Direction.Bottom) ||
+                   (direction == Direction.Left && _previousDirection == Direction.Right) ||
+                   (direction == Direction.Right && _previousDirection == Direction.Left);
         }
 
         private static LinkedList<Point> CreateDefaultBody(Point head)
@@ -125,7 +150,8 @@ namespace SnakeHost.Logic
             return point.X >= 0 && point.X < size.Width && point.Y >= 0 && point.Y < size.Height;
         }
 
-        private Direction _direction = Direction.Top;
+        private Direction _nextDirection = Direction.Top;
+        private Direction _previousDirection = Direction.Top;
 
         private readonly LinkedList<Point> _body;
     }

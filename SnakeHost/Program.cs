@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace SnakeHost
 {
@@ -11,12 +12,12 @@ namespace SnakeHost
                 .UseKestrel()
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseStartup<Startup>()
-                .UseUrls("http://localhost:5000/")
+                .UseUrls("http://0.0.0.0:80/")
                 .ConfigureLogging((hostingContext, logging) =>
                 {
-                    /*logging.SetMinimumLevel(LogLevel.Debug);
-                    logging.AddConsole();
-                    logging.AddDebug();*/
+                    //logging.SetMinimumLevel(LogLevel.Debug);
+                    //logging.AddConsole();
+                    //logging.AddDebug();
                 })
                 .Build()
                 .Run();
