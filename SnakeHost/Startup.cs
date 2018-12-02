@@ -41,6 +41,7 @@ namespace SnakeHost
             {
                 c.SwaggerDoc("v1", new Info { Title = "Snake API", Version = "v1" });
                 c.IncludeXmlComments(Path.Combine(Environment.CurrentDirectory, "SnakeHost.xml"));
+                c.DescribeAllEnumsAsStrings();
             });
 
             // Configure game API
