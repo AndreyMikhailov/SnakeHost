@@ -1,3 +1,32 @@
 {
-  "adminToken": "k*3Gmk2%6kfP0AKdPF7_d"
+  "adminToken": "k*3Gmk2%6kfP0AKdPF7_d",
+
+  "IpRateLimiting": {
+    "EnableEndpointRateLimiting": false,
+    "StackBlockedRequests": false,
+    "RealIpHeader": "X-Real-IP",
+    "ClientIdHeader": "X-ClientId",
+    "HttpStatusCode": 429,
+    "GeneralRules": [
+      {
+        "Endpoint": "*",
+        "Period": "1m",
+        "Limit": 5000
+      }
+    ]
+  },
+
+  "ClientRateLimiting": {
+    "EnableEndpointRateLimiting": false,
+    "StackBlockedRequests": false,
+    "ClientIdHeader": "X-ClientId",
+    "HttpStatusCode": 429,
+    "GeneralRules": [
+      {
+        "Endpoint": "*",
+        "Period": "1s",
+        "Limit": 10
+      }
+    ]
+  }
 } 

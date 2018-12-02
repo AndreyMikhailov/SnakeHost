@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using AspNetCoreRateLimit;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,16 +9,31 @@ namespace SnakeHost
 {
     public class Startup
     {
+        public IConfigurationRoot Configuration { get; }
+
         public Startup()
         {
-            _settings = new ConfigurationBuilder()     
+            Configuration = new ConfigurationBuilder()
                 .AddJsonFile("settings.json")
-                .Build()
-                .Get<Settings>(); 
+                .Build();
+
+            _settings = Configuration.Get<Settings>();
         }
 
         public void ConfigureServices(IServiceCollection services)
         {
+            // Configure DDOS protection
+            services.AddOptions();
+            services.AddMemoryCache();
+            services.Configure<IpRateLimitOptions>(Configuration.GetSection("IpRateLimiting"));
+            services.Configure<IpRateLimitPolicies>(Configuration.GetSection("IpRateLimitPolicies"));
+            services.Configure<ClientRateLimitOptions>(Configuration.GetSection("ClientRateLimiting"));
+            services.Configure<ClientRateLimitPolicies>(Configuration.GetSection("ClientRateLimitPolicies"));
+            services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+            services.AddSingleton<IClientPolicyStore, MemoryCacheClientPolicyStore>();
+            services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+
+            // Configure game API
             services.AddMvc().AddApplicationPart(typeof(Startup).Assembly);
             services.AddSingleton(_settings);
             services.AddSingleton<Authenticator>();
@@ -26,6 +42,11 @@ namespace SnakeHost
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            // Configure DDOS protection
+            app.UseIpRateLimiting();
+            app.UseClientRateLimiting();
+            
+            // Configure game API
             app.UseMvc();
         }
 
