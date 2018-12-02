@@ -8,6 +8,7 @@ namespace SnakeHost.Messages
         public bool IsPaused { get; set; }
         public int RoundNumber { get; set; }
         public int TurnNumber { get; set; }
+        public double TimeUntilNextTurnSeconds { get; set; }
         public Size GameBoardSize { get; set; }
         public int MaxFood { get; set; }
         public PlayerState[] Players { get; set; }

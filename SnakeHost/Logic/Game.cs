@@ -59,6 +59,7 @@ namespace SnakeHost.Logic
                     MaxWallSize = MaxWallSize,
                     MinWallSize = MinWallSize
                 };
+                _turnStopWatch.Restart();
                 _gameLoopTask = Task.Run(GameLoop);
             }
         }
@@ -153,6 +154,7 @@ namespace SnakeHost.Logic
                 state.IsStarted = IsStarted;
                 state.IsPaused = IsPaused;
                 state.RoundNumber = _roundNumber;
+                state.TimeUntilNextTurnSeconds = GetTimeUntilNextTurn().TotalSeconds;
                 return state;
             }
         }
@@ -162,7 +164,7 @@ namespace SnakeHost.Logic
             var roundTime = RoundTime;
             var turnTime = TurnTime;
             var elapsedTime = TimeSpan.Zero;
-
+            
             while (IsStarted)
             {
                 if (IsPaused)
@@ -186,7 +188,9 @@ namespace SnakeHost.Logic
                 {
                     try
                     {
+                        _turnStopWatch.Stop();
                         _gameBoard.NextTurn();
+                        _turnStopWatch.Restart();
                     }
                     catch (Exception ex)
                     {
@@ -205,7 +209,19 @@ namespace SnakeHost.Logic
             if (waitGameLoop)
             {
                 _gameLoopTask.Wait();
+                _turnStopWatch.Reset();
             }
+        }
+
+        private TimeSpan GetTimeUntilNextTurn()
+        {
+            if (!IsStarted || IsPaused)
+            {
+                return TimeSpan.Zero;
+            }
+
+            var nextTurnTime = TurnTime - _turnStopWatch.Elapsed;
+            return nextTurnTime < TimeSpan.Zero ? TimeSpan.Zero : nextTurnTime;
         }
 
         private bool HasPlayerName(string name)
@@ -235,6 +251,7 @@ namespace SnakeHost.Logic
         private readonly object _syncObject = new object();
         private readonly List<Player> _players;
         private readonly JsonStorage<List<Player>> _playersStorage = new JsonStorage<List<Player>>("players.json");
+        private readonly Stopwatch _turnStopWatch = new Stopwatch();
 
         private const int MaxNameLength = 50;
     }
