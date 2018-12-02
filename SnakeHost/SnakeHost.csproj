@@ -6,11 +6,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>C:\Users\Andrew\source\repos\SnakeHost\SnakeHost\SnakeHost.xml</DocumentationFile>
+    <DocumentationFile>SnakeHost.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>C:\Users\Andrew\source\repos\SnakeHost\SnakeHost\SnakeHost.xml</DocumentationFile>
+    <DocumentationFile>SnakeHost.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
