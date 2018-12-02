@@ -205,11 +205,11 @@ namespace SnakeHost.Logic
         private void InternalStop(bool waitGameLoop)
         {
             IsStarted = false;
+            _turnStopWatch.Reset();
 
             if (waitGameLoop)
             {
                 _gameLoopTask.Wait();
-                _turnStopWatch.Reset();
             }
         }
 
