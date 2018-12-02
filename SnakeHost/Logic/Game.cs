@@ -154,7 +154,8 @@ namespace SnakeHost.Logic
                 state.IsStarted = IsStarted;
                 state.IsPaused = IsPaused;
                 state.RoundNumber = _roundNumber;
-                state.TimeUntilNextTurnSeconds = GetTimeUntilNextTurn().TotalSeconds;
+                state.TurnTimeMilliseconds = ClampToMaxInt32(TurnTime.TotalMilliseconds);
+                state.TimeUntilNextTurnMilliseconds = ClampToMaxInt32(GetTimeUntilNextTurn().TotalMilliseconds);
                 return state;
             }
         }
@@ -242,6 +243,11 @@ namespace SnakeHost.Logic
         private List<Player> LoadPlayers()
         {
             return _playersStorage.Read();
+        }
+
+        private static int ClampToMaxInt32(double value)
+        {
+            return value > int.MaxValue ? int.MaxValue : (int)value;
         }
 
         private GameBoard _gameBoard;
