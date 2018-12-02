@@ -1,0 +1,93 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SnakeHost</name>
+    </assembly>
+    <members>
+        <member name="T:SnakeHost.Controllers.PlayerController">
+            <summary>Позволяет игроку получить информацию о состоянии игрового поля и управлять его змейкой.</summary>
+        </member>
+        <member name="M:SnakeHost.Controllers.PlayerController.GetGameBoard">
+            <summary>Возвращает состояние игрового поля.</summary>
+            <returns>Состояние игрового поля.</returns>
+        </member>
+        <member name="M:SnakeHost.Controllers.PlayerController.GetName(SnakeHost.Messages.AuthenticationRequest)">
+            <summary>Возвращает имя игрока.</summary>
+            <param name="request">Данные для авторизации.</param>
+            <returns>Имя игрока.</returns>
+        </member>
+        <member name="M:SnakeHost.Controllers.PlayerController.SetDirection(SnakeHost.Messages.DirectionRequest)">
+            <summary>Задает поворот змейки, который будет использван во время следующего хода.</summary>
+            <param name="request">Данные авторизации и направление змейки.</param>
+        </member>
+        <member name="P:SnakeHost.Logic.Snake.Body">
+            <summary>All body points starting from head.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.AuthenticationRequest.Token">
+            <summary>Уникальный секретный токен для авторизации игрока.</summary>
+        </member>
+        <member name="T:SnakeHost.Messages.DirectionRequest">
+            <summary>Содержит данные авторизации и направление змейки.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.DirectionRequest.Direction">
+            <summary>Направление змейки.</summary>
+        </member>
+        <member name="T:SnakeHost.Messages.GameStateResponse">
+            <summary>Содержит состояние игрового поля.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.GameStateResponse.IsStarted">
+            <summary>Запущена ли игра администратором.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.GameStateResponse.IsPaused">
+            <summary>Поставлена ли игра на паузу администратором.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.GameStateResponse.RoundNumber">
+            <summary>Текущий номер раунда.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.GameStateResponse.TurnNumber">
+            <summary>Текущий номер хода.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.GameStateResponse.TurnTimeMilliseconds">
+            <summary>Время хода в миллисекнудах.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.GameStateResponse.TimeUntilNextTurnMilliseconds">
+            <summary>Время до следующего хода в миллисекнудах.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.GameStateResponse.GameBoardSize">
+            <summary>Размер игрового поля (ширина, длина).</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.GameStateResponse.MaxFood">
+            <summary>Максимальное количество еды генерируемое на поле.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.GameStateResponse.Players">
+            <summary>Состояния всех игроков и их змеек на поле.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.GameStateResponse.Food">
+            <summary>Позиции всех точек с едой на поле (X, Y).</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.GameStateResponse.Walls">
+            <summary>Позиции всех стенок на поле (X левого верхнего края, Y левого верхнего края, ширина, длина).</summary>
+        </member>
+        <member name="T:SnakeHost.Messages.NameResponse">
+            <summary>Содержит имя игрока.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.NameResponse.Name">
+            <summary>Имя игрока.</summary>
+        </member>
+        <member name="T:SnakeHost.Messages.PlayerState">
+            <summary>Содержит состояния игрока и его змейки.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.PlayerState.Name">
+            <summary>Имя игрока.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.PlayerState.IsSpawnProtected">
+            <summary>
+            Является ли игрок защищенным после появления на игровой доске.
+            В это время все кто в него врежутся - умрут, а сам игрок не может двигаться какое-то время.
+            </summary>
+        </member>
+        <member name="P:SnakeHost.Messages.PlayerState.Snake">
+            <summary>Все точки, из которых состоит змейка (X, Y), начиная с головы и заканчивая хвостом.</summary>
+        </member>
+    </members>
+</doc>

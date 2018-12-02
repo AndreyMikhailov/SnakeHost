@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using SnakeHost.Logic;
 using SnakeHost.Messages;
+// ReSharper disable CommentTypo
 
 namespace SnakeHost.Controllers
 {
+    /// <summary>Позволяет игроку получить информацию о состоянии игрового поля и управлять его змейкой.</summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class PlayerController : ControllerBase
@@ -15,6 +17,8 @@ namespace SnakeHost.Controllers
             _game = game;
         }
         
+        /// <summary>Возвращает состояние игрового поля.</summary>
+        /// <returns>Состояние игрового поля.</returns>
         [HttpGet]
         [ActionName("gameboard")]
         public GameStateResponse GetGameBoard()
@@ -22,9 +26,12 @@ namespace SnakeHost.Controllers
             return _game.GetState();
         }
         
+        /// <summary>Возвращает имя игрока.</summary>
+        /// <param name="request">Данные для авторизации.</param>
+        /// <returns>Имя игрока.</returns>
         [HttpGet]
         [ActionName("name")]
-        public NameResponse GetName(AuthenticationRequest request)
+        public NameResponse GetName([FromBody] AuthenticationRequest request)
         {
             if (!TryGetPlayerAndAuthorize(request, out var player))
             {
@@ -33,9 +40,11 @@ namespace SnakeHost.Controllers
             return new NameResponse { Name = player.Name };
         }
 
+        /// <summary>Задает поворот змейки, который будет использван во время следующего хода.</summary>
+        /// <param name="request">Данные авторизации и направление змейки.</param>
         [HttpPost]
         [ActionName("direction")]
-        public void SetDirection(DirectionRequest request)
+        public void SetDirection([FromBody] DirectionRequest request)
         {
             if (TryGetPlayerAndAuthorize(request, out var player))
             {

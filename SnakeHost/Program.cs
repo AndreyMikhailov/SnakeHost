@@ -16,7 +16,7 @@ namespace SnakeHost
                 .ConfigureLogging((hostingContext, logging) =>
                 {
                     //logging.SetMinimumLevel(LogLevel.Debug);
-                    //logging.AddConsole();
+                    logging.AddConsole();
                     //logging.AddDebug();
                 })
                 .Build()

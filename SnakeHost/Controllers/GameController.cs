@@ -9,6 +9,7 @@ namespace SnakeHost.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class GameController : ControllerBase
     {
         public GameController(Authenticator authenticator, Game game)
