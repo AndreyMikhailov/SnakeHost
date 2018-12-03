@@ -15,12 +15,12 @@
             <summary>Возвращает имя игрока.</summary>
             <param name="token">Токен игрока.</param>
             <returns>Имя игрока.</returns>
-            <response code="401">Invalid token.</response>
+            <response code="401">Некорректный токен.</response>
         </member>
         <member name="M:SnakeHost.Controllers.PlayerController.SetDirection(SnakeHost.Messages.DirectionRequest)">
             <summary>Задает поворот змейки, который будет использван во время следующего хода.</summary>
             <param name="request">Данные авторизации и направление змейки.</param>
-            <response code="401">Invalid token.</response>
+            <response code="401">Некорректный токен.</response>
         </member>
         <member name="P:SnakeHost.Logic.Snake.Body">
             <summary>All body points starting from head.</summary>
@@ -90,6 +90,39 @@
         </member>
         <member name="P:SnakeHost.Messages.PlayerState.Snake">
             <summary>Все точки, из которых состоит змейка (X, Y), начиная с головы и заканчивая хвостом.</summary>
+        </member>
+        <member name="T:SnakeHost.Messages.Point2D">
+            <summary>Описывает точку на двумерной области.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.Point2D.X">
+            <summary>Координата X.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.Point2D.Y">
+            <summary>Координата Y.</summary>
+        </member>
+        <member name="T:SnakeHost.Messages.Rectangle2D">
+            <summary>Описывает прямоугольную область.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.Rectangle2D.X">
+            <summary>Координата X верхнего левого угла области.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.Rectangle2D.Y">
+            <summary>Координата Y верхнего левого угла области.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.Rectangle2D.Width">
+            <summary>Ширина области.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.Rectangle2D.Height">
+            <summary>Высота области.</summary>
+        </member>
+        <member name="T:SnakeHost.Messages.Size2D">
+            <summary>Описывает размер двумерной области.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.Size2D.Width">
+            <summary>Ширина.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.Size2D.Height">
+            <summary>Высота.</summary>
         </member>
     </members>
 </doc>

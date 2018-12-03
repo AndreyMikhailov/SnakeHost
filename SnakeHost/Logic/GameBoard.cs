@@ -71,16 +71,16 @@ namespace SnakeHost.Logic
             return new GameStateResponse
             {
                 TurnNumber = TurnNumber,
-                GameBoardSize = Size,
+                GameBoardSize = Size2D.FromSize(Size),
                 MaxFood = MaxFood,
-                Food = _foodList.Select(f => f.Position).ToArray(),
-                Walls = _walls.Select(w => w.Rectangle).ToArray(),
+                Food = _foodList.Select(f => Point2D.FromPoint(f.Position)).ToArray(),
+                Walls = _walls.Select(w => Rectangle2D.FromRectangle(w.Rectangle)).ToArray(),
                 Players = _playersData.Select(playerData => 
                     new PlayerState
                     {
                         Name = playerData.Player.Name,
                         IsSpawnProtected = IsSpawnProtected(playerData),
-                        Snake = playerData.Snake?.Body.ToArray()
+                        Snake = playerData.Snake?.Body.Select(Point2D.FromPoint).ToArray()
                     }).ToArray()
             };
         }

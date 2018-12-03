@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-// ReSharper disable CommentTypo
+﻿// ReSharper disable CommentTypo
 
 namespace SnakeHost.Messages
 {
@@ -16,6 +15,6 @@ namespace SnakeHost.Messages
         public bool IsSpawnProtected { get; set; }
 
         /// <summary>Все точки, из которых состоит змейка (X, Y), начиная с головы и заканчивая хвостом.</summary>
-        public Point[] Snake { get; set; }
+        public Point2D[] Snake { get; set; }
     }
 }

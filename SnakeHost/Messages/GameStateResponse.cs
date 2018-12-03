@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-// ReSharper disable CommentTypo
+﻿// ReSharper disable CommentTypo
 
 namespace SnakeHost.Messages
 {
@@ -25,7 +24,7 @@ namespace SnakeHost.Messages
         public int TimeUntilNextTurnMilliseconds { get; set; }
 
         /// <summary>Размер игрового поля (ширина, длина).</summary>
-        public Size GameBoardSize { get; set; }
+        public Size2D GameBoardSize { get; set; }
 
         /// <summary>Максимальное количество еды генерируемое на поле.</summary>
         public int MaxFood { get; set; }
@@ -34,9 +33,9 @@ namespace SnakeHost.Messages
         public PlayerState[] Players { get; set; }
 
         /// <summary>Позиции всех точек с едой на поле (X, Y).</summary>
-        public Point[] Food { get; set; }
+        public Point2D[] Food { get; set; }
 
         /// <summary>Позиции всех стенок на поле (X левого верхнего края, Y левого верхнего края, ширина, длина).</summary>
-        public Rectangle[] Walls { get; set; }
+        public Rectangle2D[] Walls { get; set; }
     }
 }
