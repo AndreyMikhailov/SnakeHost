@@ -11,14 +11,16 @@
             <summary>Возвращает состояние игрового поля.</summary>
             <returns>Состояние игрового поля.</returns>
         </member>
-        <member name="M:SnakeHost.Controllers.PlayerController.GetName(SnakeHost.Messages.AuthenticationRequest)">
+        <member name="M:SnakeHost.Controllers.PlayerController.GetName(System.String)">
             <summary>Возвращает имя игрока.</summary>
-            <param name="request">Данные для авторизации.</param>
+            <param name="token">Токен игрока.</param>
             <returns>Имя игрока.</returns>
+            <response code="401">Invalid token.</response>
         </member>
         <member name="M:SnakeHost.Controllers.PlayerController.SetDirection(SnakeHost.Messages.DirectionRequest)">
             <summary>Задает поворот змейки, который будет использван во время следующего хода.</summary>
             <param name="request">Данные авторизации и направление змейки.</param>
+            <response code="401">Invalid token.</response>
         </member>
         <member name="P:SnakeHost.Logic.Snake.Body">
             <summary>All body points starting from head.</summary>

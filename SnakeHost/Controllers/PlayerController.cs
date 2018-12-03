@@ -27,13 +27,14 @@ namespace SnakeHost.Controllers
         }
         
         /// <summary>Возвращает имя игрока.</summary>
-        /// <param name="request">Данные для авторизации.</param>
+        /// <param name="token">Токен игрока.</param>
         /// <returns>Имя игрока.</returns>
+        /// <response code="401">Некорректный токен.</response>
         [HttpGet]
         [ActionName("name")]
-        public NameResponse GetName([FromBody] AuthenticationRequest request)
+        public NameResponse GetName([FromQuery] string token)
         {
-            if (!TryGetPlayerAndAuthorize(request, out var player))
+            if (!TryGetPlayerAndAuthorize(token, out var player))
             {
                 return null;
             }
@@ -42,20 +43,21 @@ namespace SnakeHost.Controllers
 
         /// <summary>Задает поворот змейки, который будет использван во время следующего хода.</summary>
         /// <param name="request">Данные авторизации и направление змейки.</param>
+        /// <response code="401">Некорректный токен.</response>
         [HttpPost]
         [ActionName("direction")]
         public void SetDirection([FromBody] DirectionRequest request)
         {
-            if (TryGetPlayerAndAuthorize(request, out var player))
+            if (TryGetPlayerAndAuthorize(request.Token, out var player))
             {
                 _game.SetPlayerDirection(player, request.Direction);
             }
         }
 
-        private bool TryGetPlayerAndAuthorize(AuthenticationRequest request, out Player player)
+        private bool TryGetPlayerAndAuthorize(string token, out Player player)
         {
-            if (_game.TryFindPlayerByToken(request.Token, out player) && 
-                _authenticator.AuthorizePlayer(player, request.Token))
+            if (_game.TryFindPlayerByToken(token, out player) && 
+                _authenticator.AuthorizePlayer(player, token))
             {
                 return true;
             }
