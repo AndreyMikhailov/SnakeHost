@@ -22,7 +22,7 @@ namespace SnakeHost.Controllers
         [ActionName("player")]
         public RegisterPlayerReply RegisterPlayer(RegisterPlayerRequest request)
         {
-            if (!AuthorizeAdmin(request))
+            if (!AuthorizeAdmin(request.Token))
             {
                 return null;
             }
@@ -38,7 +38,7 @@ namespace SnakeHost.Controllers
         [ActionName("player")]
         public void DeletePlayer(DeletePlayerRequest request)
         {
-            if (AuthorizeAdmin(request))
+            if (AuthorizeAdmin(request.Token))
             {
                 _game.DeletePlayer(request.PlayerName);
             }
@@ -46,16 +46,16 @@ namespace SnakeHost.Controllers
 
         [HttpGet]
         [ActionName("player")]
-        public Player[] GetPlayers(AuthenticationRequest request)
+        public Player[] GetPlayers(string token)
         {
-            return AuthorizeAdmin(request) ? _game.Players.ToArray() : null;
+            return AuthorizeAdmin(token) ? _game.Players.ToArray() : null;
         }
 
         [HttpPost]
         [ActionName("start")]
         public void Start(AuthenticationRequest request)
         {
-            if (AuthorizeAdmin(request))
+            if (AuthorizeAdmin(request.Token))
             {
                 _game.Start();
             }
@@ -65,7 +65,7 @@ namespace SnakeHost.Controllers
         [ActionName("stop")]
         public void Stop(AuthenticationRequest request)
         {
-            if (AuthorizeAdmin(request))
+            if (AuthorizeAdmin(request.Token))
             {
                 _game.Stop();
             }
@@ -75,7 +75,7 @@ namespace SnakeHost.Controllers
         [ActionName("pause")]
         public void Pause(AuthenticationRequest request)
         {
-            if (AuthorizeAdmin(request))
+            if (AuthorizeAdmin(request.Token))
             {
                 _game.Pause();
             }
@@ -85,7 +85,7 @@ namespace SnakeHost.Controllers
         [ActionName("resume")]
         public void Resume(AuthenticationRequest request)
         {
-            if (AuthorizeAdmin(request))
+            if (AuthorizeAdmin(request.Token))
             {
                 _game.Resume();
             }
@@ -97,7 +97,7 @@ namespace SnakeHost.Controllers
         {
             var settings = request.Settings;
 
-            if (!AuthorizeAdmin(request) || settings == null)
+            if (!AuthorizeAdmin(request.Token) || settings == null)
             {
                 return;
             }
@@ -117,7 +117,7 @@ namespace SnakeHost.Controllers
         [ActionName("gamesettings")]
         public GameSettingsState GetGameSettings(AuthenticationRequest request)
         {
-            if (!AuthorizeAdmin(request))
+            if (!AuthorizeAdmin(request.Token))
             {
                 return null;
             }
@@ -136,9 +136,9 @@ namespace SnakeHost.Controllers
             };
         }
 
-        private bool AuthorizeAdmin(AuthenticationRequest request)
+        private bool AuthorizeAdmin(string token)
         {
-            if (_authenticator.AuthorizeAdmin(request.Token))
+            if (_authenticator.AuthorizeAdmin(token))
             {
                 return true;
             }
