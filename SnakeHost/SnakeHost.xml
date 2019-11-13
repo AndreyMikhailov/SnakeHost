@@ -7,8 +7,9 @@
         <member name="T:SnakeHost.Controllers.PlayerController">
             <summary>Позволяет игроку получить информацию о состоянии игрового поля и управлять его змейкой.</summary>
         </member>
-        <member name="M:SnakeHost.Controllers.PlayerController.GetGameBoard">
+        <member name="M:SnakeHost.Controllers.PlayerController.GetGameBoard(System.String)">
             <summary>Возвращает состояние игрового поля.</summary>
+            <param name="token">Токен игрока.</param>
             <returns>Состояние игрового поля.</returns>
         </member>
         <member name="M:SnakeHost.Controllers.PlayerController.GetName(System.String)">
@@ -62,7 +63,10 @@
             <summary>Максимальное количество еды генерируемое на поле.</summary>
         </member>
         <member name="P:SnakeHost.Messages.GameStateResponse.Players">
-            <summary>Состояния всех игроков и их змеек на поле.</summary>
+            <summary>Состояния всех игроков и их змеек на поле, включая вашу змейку.</summary>
+        </member>
+        <member name="P:SnakeHost.Messages.GameStateResponse.Snake">
+            <summary>Ваша змейка. Все точки, из которых она состоит (X, Y), начиная с головы и заканчивая хвостом.</summary>
         </member>
         <member name="P:SnakeHost.Messages.GameStateResponse.Food">
             <summary>Позиции всех точек с едой на поле (X, Y).</summary>

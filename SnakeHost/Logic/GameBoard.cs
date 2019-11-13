@@ -66,8 +66,14 @@ namespace SnakeHost.Logic
             TurnNumber++;
         }
         
-        public GameStateResponse GetState()
+        public GameStateResponse GetState(Player player = null)
         {
+            PlayerData playerData = null;
+            if (player != null)
+            {
+                playerData = _playersData.FirstOrDefault(p => p.Player.Name == player.Name);
+            }
+
             return new GameStateResponse
             {
                 TurnNumber = TurnNumber,
@@ -75,12 +81,13 @@ namespace SnakeHost.Logic
                 MaxFood = MaxFood,
                 Food = _foodList.Select(f => Point2D.FromPoint(f.Position)).ToArray(),
                 Walls = _walls.Select(w => Rectangle2D.FromRectangle(w.Rectangle)).ToArray(),
-                Players = _playersData.Select(playerData => 
+                Snake = playerData?.Snake?.Body.Select(Point2D.FromPoint).ToArray(),
+                Players = _playersData.Select(pd => 
                     new PlayerState
                     {
-                        Name = playerData.Player.Name,
-                        IsSpawnProtected = IsSpawnProtected(playerData),
-                        Snake = playerData.Snake?.Body.Select(Point2D.FromPoint).ToArray()
+                        Name = pd.Player.Name,
+                        IsSpawnProtected = IsSpawnProtected(pd),
+                        Snake = pd.Snake?.Body.Select(Point2D.FromPoint).ToArray()
                     }).ToArray()
             };
         }

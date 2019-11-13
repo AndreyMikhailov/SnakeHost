@@ -14,19 +14,5 @@
         "Limit": 5000
       }
     ]
-  },
-
-  "ClientRateLimiting": {
-    "EnableEndpointRateLimiting": false,
-    "StackBlockedRequests": false,
-    "ClientIdHeader": "X-ClientId",
-    "HttpStatusCode": 429,
-    "GeneralRules": [
-      {
-        "Endpoint": "*",
-        "Period": "1s",
-        "Limit": 10
-      }
-    ]
   }
 } 

@@ -29,8 +29,11 @@ namespace SnakeHost.Messages
         /// <summary>Максимальное количество еды генерируемое на поле.</summary>
         public int MaxFood { get; set; }
 
-        /// <summary>Состояния всех игроков и их змеек на поле.</summary>
+        /// <summary>Состояния всех игроков и их змеек на поле, включая вашу змейку.</summary>
         public PlayerState[] Players { get; set; }
+        
+        /// <summary>Ваша змейка. Все точки, из которых она состоит (X, Y), начиная с головы и заканчивая хвостом.</summary>
+        public Point2D[] Snake { get; set; }
 
         /// <summary>Позиции всех точек с едой на поле (X, Y).</summary>
         public Point2D[] Food { get; set; }

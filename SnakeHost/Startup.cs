@@ -30,10 +30,7 @@ namespace SnakeHost
             services.AddMemoryCache();
             services.Configure<IpRateLimitOptions>(Configuration.GetSection("IpRateLimiting"));
             services.Configure<IpRateLimitPolicies>(Configuration.GetSection("IpRateLimitPolicies"));
-            services.Configure<ClientRateLimitOptions>(Configuration.GetSection("ClientRateLimiting"));
-            services.Configure<ClientRateLimitPolicies>(Configuration.GetSection("ClientRateLimitPolicies"));
             services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
-            services.AddSingleton<IClientPolicyStore, MemoryCacheClientPolicyStore>();
             services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
             
             // Generate docs

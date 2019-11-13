@@ -18,12 +18,18 @@ namespace SnakeHost.Controllers
         }
         
         /// <summary>Возвращает состояние игрового поля.</summary>
+        /// <param name="token">Токен игрока.</param>
         /// <returns>Состояние игрового поля.</returns>
         [HttpGet]
         [ActionName("gameboard")]
-        public GameStateResponse GetGameBoard()
+        public GameStateResponse GetGameBoard(string token = null)
         {
-            return _game.GetState();
+            Player player = null;
+            if (token != null)
+            {
+                TryGetPlayerAndAuthorize(token, out player);
+            }
+            return _game.GetState(player);
         }
         
         /// <summary>Возвращает имя игрока.</summary>
@@ -36,6 +42,7 @@ namespace SnakeHost.Controllers
         {
             if (!TryGetPlayerAndAuthorize(token, out var player))
             {
+                Response.StatusCode = StatusCodes.Status401Unauthorized;
                 return null;
             }
             return new NameResponse { Name = player.Name };
@@ -52,16 +59,20 @@ namespace SnakeHost.Controllers
             {
                 _game.SetPlayerDirection(player, request.Direction);
             }
+            else
+            {
+                Response.StatusCode = StatusCodes.Status401Unauthorized;
+            }
         }
 
         private bool TryGetPlayerAndAuthorize(string token, out Player player)
         {
-            if (_game.TryFindPlayerByToken(token, out player) && 
+            if (_game.TryFindPlayerByToken(token, out player) &&
                 _authenticator.AuthorizePlayer(player, token))
             {
                 return true;
             }
-            Response.StatusCode = StatusCodes.Status401Unauthorized;
+            player = null;
             return false;
         }
 

@@ -117,11 +117,11 @@ namespace SnakeHost.Logic
             {
                 case Direction.Left:
                     return new Point(Head.X - 1, Head.Y);
-                case Direction.Top:
+                case Direction.Up:
                     return new Point(Head.X, Head.Y - 1);
                 case Direction.Right:
                     return new Point(Head.X + 1, Head.Y);
-                case Direction.Bottom:
+                case Direction.Down:
                     return new Point(Head.X, Head.Y + 1);
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -130,8 +130,8 @@ namespace SnakeHost.Logic
 
         private bool IsOppositeDirection(Direction direction)
         {
-            return (direction == Direction.Bottom && _previousDirection == Direction.Top) ||
-                   (direction == Direction.Top && _previousDirection == Direction.Bottom) ||
+            return (direction == Direction.Down && _previousDirection == Direction.Up) ||
+                   (direction == Direction.Up && _previousDirection == Direction.Down) ||
                    (direction == Direction.Left && _previousDirection == Direction.Right) ||
                    (direction == Direction.Right && _previousDirection == Direction.Left);
         }
@@ -150,8 +150,8 @@ namespace SnakeHost.Logic
             return point.X >= 0 && point.X < size.Width && point.Y >= 0 && point.Y < size.Height;
         }
 
-        private Direction _nextDirection = Direction.Top;
-        private Direction _previousDirection = Direction.Top;
+        private Direction _nextDirection = Direction.Up;
+        private Direction _previousDirection = Direction.Up;
 
         private readonly LinkedList<Point> _body;
     }

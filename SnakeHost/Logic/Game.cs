@@ -47,6 +47,11 @@ namespace SnakeHost.Logic
         {
             lock (_syncObject)
             {
+                if (IsStarted)
+                {
+                    return;
+                }
+                
                 IsStarted = true;
                 _roundNumber++;
 
@@ -146,11 +151,11 @@ namespace SnakeHost.Logic
             }
         }
 
-        public GameStateResponse GetState()
+        public GameStateResponse GetState(Player player = null)
         {
             lock (_syncObject)
             {
-                var state = _gameBoard?.GetState() ?? new GameStateResponse();
+                var state = _gameBoard?.GetState(player) ?? new GameStateResponse();
                 state.IsStarted = IsStarted;
                 state.IsPaused = IsPaused;
                 state.RoundNumber = _roundNumber;
@@ -205,6 +210,11 @@ namespace SnakeHost.Logic
 
         private void InternalStop(bool waitGameLoop)
         {
+            if (!IsStarted)
+            {
+                return;
+            }
+            
             IsStarted = false;
             _turnStopWatch.Reset();
 
