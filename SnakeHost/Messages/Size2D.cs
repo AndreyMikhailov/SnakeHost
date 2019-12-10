@@ -19,5 +19,10 @@ namespace SnakeHost.Messages
                 Height = size.Height
             };
         }
+
+        public Size ToSize()
+        {
+            return new Size(Width, Height);
+        }
     }
 }

@@ -102,11 +102,11 @@ namespace SnakeHost.Controllers
                 return;
             }
 
-            _game.GameBoardSize = settings.GameBoardSize;
+            _game.GameBoardSize = settings.GameBoardSize.ToSize();
             _game.CrashRule = settings.CrashRule;
             _game.AutoRestart = settings.AutoRestart;
-            _game.MaxWallSize = settings.MaxWallSize;
-            _game.MinWallSize = settings.MinWallSize;
+            _game.MaxWallSize = settings.MaxWallSize.ToSize();
+            _game.MinWallSize = settings.MinWallSize.ToSize();
             _game.MaxWalls = settings.MaxWalls;
             _game.MaxFood = settings.MaxFood;
             _game.RoundTime = TimeSpan.FromSeconds(settings.RoundTimeSeconds);
@@ -124,11 +124,11 @@ namespace SnakeHost.Controllers
 
             return new GameSettingsState
             {
-                GameBoardSize = _game.GameBoardSize,
+                GameBoardSize = Size2D.FromSize(_game.GameBoardSize),
                 CrashRule = _game.CrashRule,
                 AutoRestart = _game.AutoRestart,
-                MaxWallSize = _game.MaxWallSize,
-                MinWallSize = _game.MinWallSize,
+                MaxWallSize = Size2D.FromSize(_game.MaxWallSize),
+                MinWallSize = Size2D.FromSize(_game.MinWallSize),
                 MaxWalls = _game.MaxWalls,
                 MaxFood = _game.MaxFood,
                 RoundTimeSeconds = (int)_game.RoundTime.TotalSeconds,
