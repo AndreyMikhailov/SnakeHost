@@ -115,9 +115,9 @@ namespace SnakeHost.Controllers
 
         [HttpGet]
         [ActionName("gamesettings")]
-        public GameSettingsState GetGameSettings(AuthenticationRequest request)
+        public GameSettingsState GetGameSettings(string token)
         {
-            if (!AuthorizeAdmin(request.Token))
+            if (!AuthorizeAdmin(token))
             {
                 return null;
             }
